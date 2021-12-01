@@ -9,9 +9,11 @@ import com.expertsclub.expertsauthentication.framework.preferences.serializer.Au
 
 class ExpertsApp : Application() {
 
-    val authDataStore: DataStore<AuthPreferences> by dataStore(
+    /*val authDataStore: DataStore<AuthPreferences> by dataStore(
         fileName = "auth.pb",
         serializer = AuthPreferencesSerializer
-    )
+    )*/
+
+    val authDataStore: DataStore<Preferences> by preferencesDataStore(name = "authStore")
     val localDataStore: DataStore<Preferences> by preferencesDataStore(name = "localStore")
 }
