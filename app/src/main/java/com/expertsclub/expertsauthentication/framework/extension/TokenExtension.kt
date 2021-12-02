@@ -6,7 +6,9 @@ import java.lang.Exception
 
 fun AuthResponse.getUserIdFromAccessToken(): String = getAccessTokenJWT()?.getClaim("id")?.asString() ?: ""
 
-private fun AuthResponse.getAccessTokenJWT(): JWT? = accessToken.toJwt()
+fun String.isExpired() = toJwt()?.isExpired(0) ?: true
+
+private fun AuthResponse.getAccessTokenJWT(): JWT? = accessToken?.toJwt()
 
 private fun String.toJwt() = try {
     JWT(this)

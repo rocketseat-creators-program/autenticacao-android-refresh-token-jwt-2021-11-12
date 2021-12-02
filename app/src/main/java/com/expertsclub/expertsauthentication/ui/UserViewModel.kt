@@ -5,16 +5,20 @@ import androidx.lifecycle.*
 import com.expertsclub.expertsauthentication.ExpertsApp
 import com.expertsclub.expertsauthentication.base.AppCoroutinesDispatchers
 import com.expertsclub.expertsauthentication.base.ResultStatus
-import com.expertsclub.expertsauthentication.framework.preferences.manager.LocalPersistenceManagerImpl
-import com.expertsclub.expertsauthentication.framework.network.manager.TokenManagerImpl
 import com.expertsclub.expertsauthentication.data.repository.AuthRepository
-import com.expertsclub.expertsauthentication.framework.preferences.datasource.PreferencesDataSourceImpl
-import com.expertsclub.expertsauthentication.framework.network.datasource.RetrofitDataSourceImpl
 import com.expertsclub.expertsauthentication.data.repository.UserRepository
 import com.expertsclub.expertsauthentication.domain.model.User
 import com.expertsclub.expertsauthentication.domain.usecase.GetUserUseCase
 import com.expertsclub.expertsauthentication.domain.usecase.LogoutUseCase
 import com.expertsclub.expertsauthentication.framework.network.ApiService
+import com.expertsclub.expertsauthentication.framework.network.AuthService
+import com.expertsclub.expertsauthentication.framework.network.datasource.ApiRemoteDataSourceImpl
+import com.expertsclub.expertsauthentication.framework.network.datasource.AuthRemoteDataSourceImpl
+import com.expertsclub.expertsauthentication.framework.network.interceptor.AuthInterceptor
+import com.expertsclub.expertsauthentication.framework.network.manager.TokenManagerImpl
+import com.expertsclub.expertsauthentication.framework.preferences.datasource.AuthProtoDataSourceImpl
+import com.expertsclub.expertsauthentication.framework.preferences.datasource.PreferencesDataSourceImpl
+import com.expertsclub.expertsauthentication.framework.preferences.manager.LocalPersistenceManagerImpl
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
@@ -29,7 +33,9 @@ class UserViewModel(
     private val _authenticationState = MutableLiveData<AuthenticationState>()
     val authenticationState: LiveData<AuthenticationState> = _authenticationState
 
-    fun getUser() = getUserUseCase.invoke(Unit).watchGetUserStatus()
+    fun getUser() {
+        getUserUseCase.invoke(Unit).watchGetUserStatus()
+    }
 
     private fun Flow<ResultStatus<User>>.watchGetUserStatus() = viewModelScope.launch {
         collect { status ->
@@ -50,7 +56,9 @@ class UserViewModel(
         }
     }
 
-    fun logout() = logoutUserCase.invoke(Unit).watchLogoutStatus()
+    fun logout() {
+        logoutUserCase.invoke(Unit).watchLogoutStatus()
+    }
 
     private fun Flow<ResultStatus<Unit>>.watchLogoutStatus() = viewModelScope.launch {
         collect { status ->
@@ -78,18 +86,20 @@ class UserViewModel(
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(UserViewModel::class.java)) {
-                val authDataSource = PreferencesDataSourceImpl(expertsApp.authDataStore)
+                val authDataSource = AuthProtoDataSourceImpl(expertsApp.authDataStore)
                 val localDataSource = PreferencesDataSourceImpl(expertsApp.localDataStore)
                 val tokenManager = TokenManagerImpl(authDataSource)
                 val localPersistenceManager = LocalPersistenceManagerImpl(localDataSource)
+                val authRemoteDataSource = AuthRemoteDataSourceImpl(AuthService.getService())
+                val authInterceptor = AuthInterceptor(tokenManager, authRemoteDataSource)
                 val remoteDataSource =
-                    RetrofitDataSourceImpl(ApiService.getService(tokenManager))
+                    ApiRemoteDataSourceImpl(ApiService.getService(authInterceptor))
                 val dispatchers = AppCoroutinesDispatchers(
                     io = Dispatchers.IO,
                     computation = Dispatchers.Default,
                     main = Dispatchers.Main
                 )
-                val authRepository = AuthRepository(remoteDataSource, tokenManager)
+                val authRepository = AuthRepository(authRemoteDataSource, tokenManager)
                 val userRepository = UserRepository(remoteDataSource, localPersistenceManager)
 
                 val getUserUserCase = GetUserUseCase(userRepository, dispatchers)

@@ -2,8 +2,8 @@ package com.expertsclub.expertsauthentication.domain.usecase
 
 import com.expertsclub.expertsauthentication.base.AppCoroutinesDispatchers
 import com.expertsclub.expertsauthentication.base.ResultStatus
-import com.expertsclub.expertsauthentication.data.repository.UserRepository
 import com.expertsclub.expertsauthentication.base.ResultUseCase
+import com.expertsclub.expertsauthentication.data.repository.UserRepository
 import kotlinx.coroutines.withContext
 
 class CheckUserLoggedInUseCase(

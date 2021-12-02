@@ -3,6 +3,8 @@ package com.expertsclub.expertsauthentication.framework.network.response
 import com.google.gson.annotations.SerializedName
 
 data class AuthResponse(
-    @SerializedName("token")
-    val accessToken: String
+    @SerializedName("accessToken")
+    val accessToken: String?,
+    @SerializedName("refreshToken")
+    val refreshToken: String?
 )

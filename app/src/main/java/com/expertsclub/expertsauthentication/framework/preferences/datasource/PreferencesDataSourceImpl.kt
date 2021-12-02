@@ -8,8 +8,9 @@ import com.expertsclub.expertsauthentication.data.repository.PreferencesDataSour
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-class PreferencesDataSourceImpl(private val dataStore: DataStore<Preferences>) :
-    PreferencesDataSource {
+class PreferencesDataSourceImpl(
+    private val dataStore: DataStore<Preferences>
+) : PreferencesDataSource {
 
     override suspend fun getFlow(prefKey: String): Flow<String> {
         val stringPrefKey = stringPreferencesKey(prefKey)

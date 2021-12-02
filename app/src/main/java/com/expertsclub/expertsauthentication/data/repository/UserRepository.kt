@@ -5,7 +5,7 @@ import com.expertsclub.expertsauthentication.framework.network.response.UserResp
 import kotlinx.coroutines.flow.first
 
 class UserRepository(
-    private val remoteDataSource: RemoteDataSource,
+    private val apiRemoteDataSource: ApiRemoteDataSource,
     private val localPersistenceManager: LocalPersistenceManager
 ) {
 
@@ -21,6 +21,6 @@ class UserRepository(
 
     suspend fun getUser(): UserResponse {
         val userId = localPersistenceManager.getUserId().first()
-        return remoteDataSource.getUser(userId)
+        return apiRemoteDataSource.getUser(userId)
     }
 }
