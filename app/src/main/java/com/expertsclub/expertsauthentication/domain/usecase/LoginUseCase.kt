@@ -5,6 +5,7 @@ import com.expertsclub.expertsauthentication.base.ResultStatus
 import com.expertsclub.expertsauthentication.base.ResultUseCase
 import com.expertsclub.expertsauthentication.data.repository.AuthRepository
 import com.expertsclub.expertsauthentication.data.repository.UserRepository
+import com.expertsclub.expertsauthentication.domain.model.TokenData
 import com.expertsclub.expertsauthentication.framework.extension.getUserIdFromAccessToken
 import kotlinx.coroutines.withContext
 
@@ -17,7 +18,8 @@ class LoginUseCase(
     override suspend fun doWork(params: LoginParams): ResultStatus<Unit> {
         return withContext(dispatchers.io) {
             val authResponse = authRepository.login(params.email, params.password)
-            authRepository.saveAccessToken(authResponse.accessToken)
+            val tokenData = TokenData(authResponse.accessToken, authResponse.refreshToken)
+            authRepository.saveAccessToken(tokenData)
             userRepository.saveUserId(authResponse.getUserIdFromAccessToken())
             ResultStatus.Success(Unit)
         }

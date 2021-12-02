@@ -9,8 +9,12 @@ import com.expertsclub.expertsauthentication.data.repository.AuthRepository
 import com.expertsclub.expertsauthentication.data.repository.UserRepository
 import com.expertsclub.expertsauthentication.domain.usecase.LoginUseCase
 import com.expertsclub.expertsauthentication.framework.network.ApiService
-import com.expertsclub.expertsauthentication.framework.network.datasource.RetrofitDataSourceImpl
+import com.expertsclub.expertsauthentication.framework.network.AuthService
+import com.expertsclub.expertsauthentication.framework.network.datasource.ApiRemoteDataSourceImpl
+import com.expertsclub.expertsauthentication.framework.network.datasource.AuthRemoteDataSourceImpl
+import com.expertsclub.expertsauthentication.framework.network.interceptor.AuthInterceptor
 import com.expertsclub.expertsauthentication.framework.network.manager.TokenManagerImpl
+import com.expertsclub.expertsauthentication.framework.preferences.datasource.AuthProtoDataSourceImpl
 import com.expertsclub.expertsauthentication.framework.preferences.datasource.PreferencesDataSourceImpl
 import com.expertsclub.expertsauthentication.framework.preferences.manager.LocalPersistenceManagerImpl
 import kotlinx.coroutines.Dispatchers
@@ -56,13 +60,15 @@ class LoginViewModel(
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(LoginViewModel::class.java)) {
-                val authDataStore = PreferencesDataSourceImpl(expertsApp.authDataStore)
-                val localDataStore = PreferencesDataSourceImpl(expertsApp.localDataStore)
-                val tokenManager = TokenManagerImpl(authDataStore)
-                val localPersistenceManager = LocalPersistenceManagerImpl(localDataStore)
+                val authDataSource = AuthProtoDataSourceImpl(expertsApp.authDataStore)
+                val localDataSource = PreferencesDataSourceImpl(expertsApp.localDataStore)
+                val tokenManager = TokenManagerImpl(authDataSource)
+                val localPersistenceManager = LocalPersistenceManagerImpl(localDataSource)
+                val authRemoteDataSource = AuthRemoteDataSourceImpl(AuthService.getService())
+                val authInterceptor = AuthInterceptor(tokenManager, authRemoteDataSource)
                 val remoteDataSource =
-                    RetrofitDataSourceImpl(ApiService.getService(tokenManager))
-                val authRepository = AuthRepository(remoteDataSource, tokenManager)
+                    ApiRemoteDataSourceImpl(ApiService.getService(authInterceptor))
+                val authRepository = AuthRepository(authRemoteDataSource, tokenManager)
                 val dispatchers = AppCoroutinesDispatchers(
                     io = Dispatchers.IO,
                     computation = Dispatchers.Default,

@@ -1,17 +1,13 @@
 package com.expertsclub.expertsauthentication.framework.network.datasource
 
-import com.expertsclub.expertsauthentication.data.repository.RemoteDataSource
+import com.expertsclub.expertsauthentication.data.repository.ApiRemoteDataSource
 import com.expertsclub.expertsauthentication.framework.network.ApiService
 import com.expertsclub.expertsauthentication.framework.network.response.AuthResponse
 import com.expertsclub.expertsauthentication.framework.network.response.UserResponse
 
-class RetrofitDataSourceImpl(
+class ApiRemoteDataSourceImpl(
     private val apiService: ApiService
-) : RemoteDataSource {
-
-    override suspend fun login(email: String, password: String): AuthResponse {
-        return apiService.login(email, password)
-    }
+) : ApiRemoteDataSource {
 
     override suspend fun getUser(id: String): UserResponse {
         return apiService.getUser(id)
